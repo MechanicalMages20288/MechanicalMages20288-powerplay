@@ -17,8 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous(name="testg", group = "auto")
-public class testg extends LinearOpMode {
+@Autonomous(name="Drive And Turn Gyro", group = "auto")
+public class TestGAndDrive extends LinearOpMode {
 
 
     BNO055IMU imu;
@@ -84,9 +84,6 @@ public class testg extends LinearOpMode {
 
 
         waitForStart();
-
-        Drive_encoder(20,.3,"fwd");
-        Drive_encoder(20,.3,"fwd");
 
 
         right_turn(90);
@@ -215,125 +212,5 @@ public class testg extends LinearOpMode {
         right_drive.setPower(0);
         back_left_drive.setPower(0);
         back_right_drive.setPower(0);
-    }
-    int Drive_encoder(double distance, double speed, String direction ) {
-
-        telemetry.addData("Motors","Test");
-        telemetry.update();
-        sleep(5000);
-
-        double circumference = 11.618;
-        double rotationsNeeded = distance/circumference;
-        int dir = 0;
-
-        if (direction == "fwd") {
-            dir = -1;
-        }
-        else if (direction == "bk"){
-            dir = 1;
-        }
-
-        int encoderTarget = (int) (dir * rotationsNeeded*751);
-
-
-        left_drive.setTargetPosition(encoderTarget);
-        right_drive.setTargetPosition(encoderTarget);
-        back_right_drive.setTargetPosition(encoderTarget);
-        back_left_drive.setTargetPosition(encoderTarget);
-
-        left_drive.setPower(speed);
-        right_drive.setPower(speed);
-        back_right_drive.setPower(speed);
-        back_left_drive.setPower(speed);
-
-        left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        back_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        back_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        while (left_drive.isBusy() && back_right_drive.isBusy() && right_drive.isBusy() && back_left_drive.isBusy()) {
-        }
-
-        left_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        right_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        back_right_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        back_left_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        left_drive.setPower(0);
-        right_drive.setPower(0);
-        back_right_drive.setPower(0);
-        back_left_drive.setPower(0);
-
-        telemetry.addData("Path","Done With FWD/BK");
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return(0);
-    }
-    int Strafe_Encoder(double distance, double L_And_Br , double R_And_BL, String direction) {
-        // To strafe left 1,-1,-1 , 1
-        // To strafe right -1, 1, 1,-1
-        // To turn right -1, 1,-1, 1
-        // to turn left 1,-1, 1, -1
-
-        int R_Bldir = 0;
-        int L_BRdir = 0;
-
-        if (direction == "Left") {
-            R_Bldir = -1;
-            L_BRdir = 1;
-        }
-        else if (direction == "Right"){
-            R_Bldir = 1;
-            L_BRdir = -1;
-        }
-
-        double circumference = 11.618;
-        double rotationsNeededR_And_BL = distance/circumference;
-        int encoderDrivingTargetR_And_Bl = (int)(R_Bldir * rotationsNeededR_And_BL*751);
-
-        double rotationsNeededL_And_BR = distance/circumference;
-        int encoderDrivingTargetL_And_BR = (int)(L_BRdir * rotationsNeededL_And_BR*751);
-
-
-
-        left_drive.setTargetPosition(encoderDrivingTargetL_And_BR);
-        right_drive.setTargetPosition(encoderDrivingTargetR_And_Bl);
-        back_right_drive.setTargetPosition(encoderDrivingTargetL_And_BR);
-        back_left_drive.setTargetPosition(encoderDrivingTargetR_And_Bl);
-
-        left_drive.setPower(L_And_Br);
-        right_drive.setPower(R_And_BL);
-        back_right_drive.setPower(L_And_Br);
-        back_left_drive.setPower(R_And_BL);
-
-        left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        back_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        back_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        while (left_drive.isBusy() && back_right_drive.isBusy() && right_drive.isBusy() && back_left_drive.isBusy()) {
-        }
-
-        left_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        right_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        back_right_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        back_left_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        left_drive.setPower(0);
-        right_drive.setPower(0);
-        back_right_drive.setPower(0);
-        back_left_drive.setPower(0);
-        telemetry.addData("Path","Done With Strafe");
-
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return(0);
     }
 }

@@ -1,3 +1,4 @@
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -9,14 +10,17 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name = "MecanumDrive", group = "TeleOp")
+@Disabled
+@TeleOp(name = "MecanumDriveBlue", group = "TeleOp")
 
 public class MecanumDrive extends OpMode {
 
     static final int MOTOR_TICK_COUNTS = 751;
 
+
     Servo bucket;
+    Servo Vcap;
+    CRServo Hcap;
     DcMotor right_drive;
     DcMotor left_drive;
     DcMotor back_right_drive;
@@ -25,12 +29,27 @@ public class MecanumDrive extends OpMode {
     DcMotor Slide;
     DcMotor Caro;
 
+    //Capping
+    double current_down_pos;
 
-    double down;
+    //Motor Power
     double left_drivePower;
     double right_drivePower;
     double back_right_drivePower;
     double back_left_drivePower;
+
+    boolean lastPressed = false;
+    boolean WallToggle = false;
+    boolean currPressed = false;
+
+    boolean modeX = false;
+    boolean bPrev = false;
+
+    boolean BToggleState = true;
+    boolean isToggled = false;
+    boolean lastState;
+    boolean isJustPressed;
+    boolean hasChanged;
 
 
     @Override
@@ -43,128 +62,229 @@ public class MecanumDrive extends OpMode {
         back_right_drive.setDirection(DcMotor.Direction.REVERSE);
         Intake = hardwareMap.dcMotor.get("Intake");
 
+        Vcap = hardwareMap.servo.get("Vcap");
+        Hcap = hardwareMap.crservo.get("Hcap");
         bucket = hardwareMap.servo.get("bucket");
         Slide = hardwareMap.dcMotor.get("Slide");
         Caro = hardwareMap.dcMotor.get("Caro");
 
         Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+
 
     @Override
     public void loop() {
 
-
         //Movement Controller
-        right_drivePower = gamepad1.right_stick_y;
-        back_right_drivePower = gamepad1.right_stick_y;
-        left_drivePower = gamepad1.left_stick_y;
-        back_left_drivePower = gamepad1.left_stick_y;
+        right_drivePower = gamepad1.right_stick_y * -.85;
+
+        back_left_drivePower = gamepad1.right_stick_y * -.85;
+        left_drivePower = gamepad1.left_stick_y * -.85;
+        back_right_drivePower = gamepad1.left_stick_y * -.85;
 
         left_drive.setPower(left_drivePower);
         right_drive.setPower(right_drivePower);
-        back_left_drive.setPower(back_left_drivePower);
-        back_right_drive.setPower(back_right_drivePower);
+        back_left_drive.setPower(left_drivePower);
+        back_right_drive.setPower(right_drivePower);
 
-        //core drive
-        boolean rightbumper = gamepad1.right_bumper;
-        boolean leftbumper = gamepad1.left_bumper;
+        boolean rightbumper = gamepad1.right_bumper; //Strafe Right
+        boolean leftbumper = gamepad1.left_bumper; //Strafe Left
         //attachments
         boolean down = gamepad2.left_bumper;
         boolean up = gamepad2.right_bumper;
 
-        float brake = gamepad2.right_trigger;
+        boolean Upcap = gamepad2.dpad_up;
+        boolean Downcap = gamepad2.dpad_down;
+        boolean Rightcap = gamepad2.dpad_right;
+        boolean Leftcap = gamepad2.dpad_left;
 
 
-        //boolean rightBumper = gamepad2.right_bumper;
-        if (leftbumper) {
-            left_drive.setPower(1); // left drive is 0
-            right_drive.setPower(-1); // right drive is 2
-            back_left_drive.setPower(-1); // back left drive is 1
-            back_right_drive.setPower(1); // back right drive is 3
-        } else if (rightbumper) {
-            left_drive.setPower(-1);
-            right_drive.setPower(1);
-            back_left_drive.setPower(1);
-            back_right_drive.setPower(-1);
+
+
+
+
+        /*if(gamepad1.b){
+            hasChanged = lastState != BToggleState;
+            isJustPressed = BToggleState && hasChanged;
+
         }
+        if(isJustPressed){
+            isToggled = !isToggled;
+        }
+
+           if (gamepad1.b) {
+            currPressed = true;
+        } else {
+            currPressed = false;
+        }
+
+        if (currPressed &&  currPressed != lastPressed) {
+            WallToggle = true;  //if user presses a B their first time
+        } else if (WallToggle) {
+            //since this an if-else, it is able to assume that currPressed is true
+            WallToggle = false; //toggle is already true but driver presses B
+        }
+        lastPressed = currPressed; */
+
+
+            if (gamepad1.dpad_up) {
+                left_drive.setPower(.95);
+                right_drive.setPower(1);
+                back_left_drive.setPower(.95);
+                back_right_drive.setPower(1);
+            } else if (gamepad1.dpad_down) {
+                left_drive.setPower(-.95);
+                right_drive.setPower(-1);
+                back_left_drive.setPower(-.95);
+                back_right_drive.setPower(-1);
+            } else {
+                left_drive.setPower(left_drivePower);
+                right_drive.setPower(right_drivePower);
+                back_left_drive.setPower(left_drivePower);
+                back_right_drive.setPower(right_drivePower);
+
+            }
+
+
+
+
+
+
+
+
+        if(gamepad1.x){
+            left_drive.setPower(-.23);
+            right_drive.setPower(-.23);
+            back_left_drive.setPower(-.23);
+            back_right_drive.setPower(-.23);
+        }
+
+        if(gamepad1.a){
+        left_drive.setPower(-.4);
+        right_drive.setPower(-.4);
+        back_left_drive.setPower(-.4);
+        back_right_drive.setPower(-.4);
+    }
+
+    //boolean rightBumper = gamepad2.right_bumper;
+        if (rightbumper) {
+        left_drive.setPower(1); // left drive is 0
+        right_drive.setPower(-1); // right drive is 2
+        back_left_drive.setPower(-1); // back left drive is 1
+        back_right_drive.setPower(1); // back right drive is 3
+    } else if (leftbumper) {
+        left_drive.setPower(-1);
+        right_drive.setPower(1);
+        back_left_drive.setPower(1);
+        back_right_drive.setPower(-1);
+    }
+
+            if (gamepad1.dpad_up) {
+        left_drive.setPower(0.95);
+        right_drive.setPower(1);
+        back_left_drive.setPower(0.95);
+        back_right_drive.setPower(1);
+    } else if (gamepad1.dpad_down) {
+        left_drive.setPower(-0.95);
+        right_drive.setPower(-1);
+        back_left_drive.setPower(-0.95);
+        back_right_drive.setPower(-1);
+    } else {
+        left_drive.setPower(left_drivePower);
+        right_drive.setPower(right_drivePower);
+        back_left_drive.setPower(left_drivePower);
+        back_right_drive.setPower(right_drivePower);
+    }
+
+
+            if(gamepad1.y){
+        left_drive.setPower(.2);
+        right_drive.setPower(.2);
+        back_left_drive.setPower(.2);
+        back_right_drive.setPower(.2);
+    }
+
+
+
+    current_down_pos = Vcap.getPosition();
+
+        if (Downcap) {
+        telemetry.addData("Servo Vertical", Vcap.getPosition());
+        telemetry.update();
+        Vcap.setPosition(current_down_pos + 0.0005);
+
+    }
+        if (Upcap) {
+        telemetry.addData("Servo Vertical", Vcap.getPosition());
+        telemetry.update();
+        Vcap.setPosition(current_down_pos - 0.0005);
+
+    }
+        if (Leftcap) {
+        Hcap.setPower(-.15);
+    }
+        else if (Rightcap){
+        Hcap.setPower(.15);
+    }
+        else {
+        Hcap.setPower(0);
+    }
 
         if (gamepad2.y) {
-            Intake.setPower(-1);
-        } else {
-            Intake.setPower(0);
-        }
+        Intake.setPower(-1);
+    } else {
+        Intake.setPower(0);
+    }
 
         if (gamepad2.a) {
-            Caro.setPower(-0.75); //3/4's speed (right carousal)
-        } else if (gamepad2.b) {
-            Caro.setPower(0.75); // (left carousal)
-        } else {
-            Caro.setPower(0);
-        }
+        Caro.setPower(Math.min(Caro.getPower() - 0.0075, -.75));
+    } else if (gamepad2.b) {
+        Caro.setPower(Math.max(Caro.getPower() + 0.0075, .75));
+    } else {
+        Caro.setPower(0);
+    }
 
         telemetry.addData("Encoder value", Slide.getCurrentPosition());
         telemetry.update();
 
-          /* if (rightbumper) {
-            Slide.setPower(0.5);
-            Slide.getCurrentPosition(); */
+        if (up && Slide.getCurrentPosition() >= -1800) {
+        Slide.setPower(-.55);
+        telemetry.addData("Slide", Slide.getCurrentPosition());
+        telemetry.update();
+
+    } else if (down) {
+
+        Slide.setPower(.4);
+        telemetry.addData("Slide", Slide.getCurrentPosition());
+        telemetry.update();
 
 
+    } else {
+        Slide.setPower(0);
+
+    }
 
 
 
         if (up) {
-            Slide.setPower(0.35);
-            Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            telemetry.addData("Slide", Slide.getCurrentPosition());
-            telemetry.update();
-            try {
-                Thread.sleep(150);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            bucket.setPosition(.4);
-        } else {
-            Slide.setPower(0);
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-
-
-        /*if (Slide.getCurrentPosition() < (-500)) {
-            bucket.setPosition(.6);
-        } */
-
-
-        if (down) {
-            Slide.setPower(-0.5);
-            Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            telemetry.addData("Slide", Slide.getCurrentPosition());
-            telemetry.update();
-            bucket.setPosition(.78);
-
-        } else {
-            Slide.setPower(0);
-        }
-
-        /*if (Slide.getCurrentPosition() > (-500))
-
-            bucket.setPosition(.8); */
-
+        bucket.setPosition(0.4);
+    } else if (down) {
+        bucket.setPosition(.78);
+    }
         if (gamepad2.x) {
-            bucket.setPosition(-.2);
-
-            /* } else if (up) {
-                try {
-                    Thread.sleep(150);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                bucket.setPosition(.5);
-            } else if (down) {
-                bucket.setPosition(.80); */
-
-
-        }
-
+        bucket.setPosition(0.05);
     }
 }
+
+
+    }
+
+
+
+

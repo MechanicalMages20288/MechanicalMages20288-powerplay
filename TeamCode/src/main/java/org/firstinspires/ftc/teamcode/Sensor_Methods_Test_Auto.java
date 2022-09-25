@@ -11,13 +11,18 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
-@Autonomous(name="TestingEncoder", group = "Auto")
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class TestingEncoder extends LinearOpMode {
 
-    static final int MOTOR_TICK_COUNTS = 751;
+public class Sensor_Methods_Test_Auto extends LinearOpMode {
 
+    private DistanceSensor sensorRange;
+    ColorSensor color;
     Servo bucket;
     DcMotor right_drive;
     DcMotor left_drive;
@@ -28,39 +33,48 @@ public class TestingEncoder extends LinearOpMode {
     DcMotor Caro;
 
 
-    double left_drivePower;
-    double right_drivePower;
-    double back_right_drivePower;
-    double back_left_drivePower;
-
-
     @Override
     public void runOpMode() throws InterruptedException {
-
-
-
-
+        color = hardwareMap.get(ColorSensor.class, "color");
         left_drive = hardwareMap.dcMotor.get("left_drive");
         right_drive = hardwareMap.dcMotor.get("right_drive");
         back_right_drive = hardwareMap.dcMotor.get("back_right_drive");
         back_left_drive = hardwareMap.dcMotor.get("back_left_drive");
+        right_drive.setDirection(DcMotor.Direction.REVERSE);
+        back_right_drive.setDirection(DcMotor.Direction.REVERSE);
         Intake = hardwareMap.dcMotor.get("Intake");
-        left_drive.setDirection(DcMotor.Direction.REVERSE);
-        back_left_drive.setDirection(DcMotor.Direction.REVERSE);
         bucket = hardwareMap.servo.get("bucket");
         Slide = hardwareMap.dcMotor.get("Slide");
         Caro = hardwareMap.dcMotor.get("Caro");
+        sensorRange = hardwareMap.get(DistanceSensor.class, "distance");
+
 
         waitForStart();
+        while (opModeIsActive() && !isStopRequested()) {
 
 
-        drive_encoder(23.236,.15, "fwd");
+        drive_encoder(29.045, .5, "fwd");
 
-        Turn_Or_Strafe_encoder(23.236, .35, -.35 , -.35, .35);
+        /*if(color.red() > 30) {
+            drive_encoder(6,.5,"fwd");
+        }*/
 
-        Turn_Or_Strafe_encoder(23.236, -.35, .35 , .35, -.35);
 
-        drive_encoder(-23.236,-.15, "bk");
+
+
+
+
+
+            telemetry.addData("range", String.format("%.01f in", sensorRange.getDistance(DistanceUnit.INCH)));
+            telemetry.addData("range", String.format("%.01f cm", sensorRange.getDistance(DistanceUnit.CM)));
+            telemetry.addData("red: ", color.red()); //checking for colors
+            telemetry.addData("green: ", color.green()); //checking for colors
+            telemetry.addData("blue: ", color.blue()); //checking for colors
+            telemetry.addData("alpha:/light ", color.alpha()); //the amount of light is alpha
+            telemetry.update();
+
+        }
+
 
     }
     int drive_encoder(double distance, double speed, String direction ) {
@@ -70,13 +84,13 @@ public class TestingEncoder extends LinearOpMode {
         int dir = 0;
 
         if (direction == "fwd") {
-            dir = 1;
-        }
-        else if (direction == "bk"){
             dir = -1;
         }
+        else if (direction == "bk"){
+            dir = 1;
+        }
 
-        int encoderTarget = (int) (rotationsNeeded*751);
+        int encoderTarget = (int) (dir * rotationsNeeded*751);
 
 
         left_drive.setTargetPosition(encoderTarget);
@@ -108,7 +122,7 @@ public class TestingEncoder extends LinearOpMode {
         back_left_drive.setPower(0);
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -125,10 +139,11 @@ public class TestingEncoder extends LinearOpMode {
         double rotationsNeeded = distance/circumference;
 
 
+
         int lencoderTarget = (int) (rotationsNeeded*751);
-        int rencoderTarget = (int) (rotationsNeeded*751);
+        int rencoderTarget = (int) ( rotationsNeeded*751);
         int blencoderTarget = (int) (rotationsNeeded*751);
-        int brencoderTarget = (int) (rotationsNeeded*751);
+        int brencoderTarget = (int) ( rotationsNeeded*751);
 
         left_drive.setTargetPosition(lencoderTarget);
         right_drive.setTargetPosition(rencoderTarget);
@@ -158,6 +173,12 @@ public class TestingEncoder extends LinearOpMode {
         back_right_drive.setPower(0);
         back_left_drive.setPower(0);
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return(0);
     }
-    }
+}

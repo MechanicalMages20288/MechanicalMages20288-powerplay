@@ -12,19 +12,30 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class MotorTest extends OpMode {
 
-    DcMotor Intake;
-    double IntakePower;
+    DcMotor Vedaant;
+
+    DcMotor Sidthesciencekid;
+
 
     @Override
     public void init() {
 
-        Intake = hardwareMap.dcMotor.get("Intake");
+        Sidthesciencekid = hardwareMap.dcMotor.get("Intake");
+        Vedaant= hardwareMap.dcMotor.get("Intake");
+
+        //Intake = hardwareMap.dcMotor.get("Intake");
     }
 
     public void loop() {
 
-
-        Intake.setPower(IntakePower);
-        Intake.setPower(-1);
-    }}
+        if (gamepad1.y) {
+            Vedaant.setPower(0.5);
+        } else  {
+        Vedaant.setPower(0);
+        }
+       /* if(gamepad1.a){
+            Intake.setPower(-1);
+        } */
+    }
+}
 

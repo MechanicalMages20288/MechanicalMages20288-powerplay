@@ -43,15 +43,17 @@ import java.util.List;
 
 //package org.firstinspires.ftc.robotcontroller.external.samples;
 
-        import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-        import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-        import java.util.List;
-        import org.firstinspires.ftc.robotcore.external.ClassFactory;
-        import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-        import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-        import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-        import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+import java.util.List;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 
 /**
  * This 2020-2021 OpMode illustrates the basics of using the TensorFlow Object Detection API to
@@ -66,6 +68,10 @@ import java.util.List;
 @TeleOp(name = "Concept: TensorFlowTest", group = "Concept")
 //@Disabled
 public class TensorFlowTest extends LinearOpMode {
+    static final int MOTOR_TICK_COUNTS = 751;
+
+    DcMotor Slide;
+
     /* Note: This sample uses the all-objects Tensor Flow model (FreightFrenzy_BCDM.tflite), which contains
      * the following 4 detectable objects
      *  0: Ball,
@@ -77,12 +83,13 @@ public class TensorFlowTest extends LinearOpMode {
      *  FreightFrenzy_BC.tflite  0: Ball,  1: Cube
      *  FreightFrenzy_DM.tflite  0: Duck,  1: Marker
      */
-    private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
+    private static final String TFOD_MODEL_ASSET = "TSE_20388.tflite";
     private static final String[] LABELS = {
-            "Ball",
-            "Cube",
-            "Duck",
-            "Marker"
+            //"Ball",
+            //"Cube",
+            //"Duck",
+            //"Marker"
+            "TSE"
     };
 
     /*
@@ -117,11 +124,21 @@ public class TensorFlowTest extends LinearOpMode {
         // first.
         initVuforia();
         initTfod();
+        Slide = hardwareMap.dcMotor.get("Slide");
+        int slideLevel1 = -678;
+        int slideLevel2 = -919;
+        int slideLevel3 = -1655;
+        int slidePos = 0;
+        int loop_count = 2;
 
         /**
          * Activate TensorFlow Object Detection before we wait for the start command.
          * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
          **/
+        telemetry.addData("Hello User", "Bleeding Steel, Online.");
+        telemetry.addData(">", "Waiting 5s to initialize tensorflow");
+        telemetry.update();
+
         if (tfod != null) {
             tfod.activate();
 
@@ -131,64 +148,80 @@ public class TensorFlowTest extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.3, 16.0/9.0);
+            tfod.setZoom(1.1, 16.0 / 9.0);
         }
+
+        sleep (5000);
+
+        if (tfod != null) {
+            // getUpdatedRecognitions() will return null if no new information is available since
+            // the last time that call was made.
+            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+
+            if (updatedRecognitions != null) {
+                telemetry.addData("# Object Detected", updatedRecognitions.size());
+                // step through the list of recognitions and display boundary info.
+                int i = 0;
+                for (Recognition recognition : updatedRecognitions) {
+                    telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                    telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            recognition.getLeft(), recognition.getTop());
+                    telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                            recognition.getRight(), recognition.getBottom());
+
+                    if (recognition.getLabel().equals("TSE")) {
+                        int TSEpos = (int) recognition.getRight();
+                        if (TSEpos <= 900 && TSEpos >= 600) {
+                            slidePos = 3;
+                        } else if (TSEpos <= 550 && TSEpos >= 350) {
+                            slidePos = 2;
+                        } else if (TSEpos <= 300 && TSEpos >= 0)
+                            slidePos = 1;
+                    } else {
+                        slidePos = 1;
+                    }
+                }
+
+                telemetry.addData("slidePos is", slidePos);
+                //telemetry.update();
+
+                i++;
+            }
+        }
+
+
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.update();
         waitForStart();
 
-        int slidePos = 0;
+        telemetry.addData("Opmode started - Final slidePos is", slidePos);
+        //telemetry.update();
 
-        if (opModeIsActive()) {
-            while (opModeIsActive()) {
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        // step through the list of recognitions and display boundary info.
-                        int i = 0;
-                        for (Recognition recognition : updatedRecognitions) {
-                            telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
-                            telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
-                                    recognition.getLeft(), recognition.getTop());
-                            telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-                                    recognition.getRight(), recognition.getBottom());
-
-                            if (recognition.getLabel().equals("Cube")) {
-                                int TSEpos = (int) recognition.getRight();
-                                if (TSEpos <= 900 && TSEpos >= 600) {
-                                    slidePos = 3;
-                                } else if (TSEpos <= 550 && TSEpos >= 350) {
-                                    slidePos = 2;
-                                } else if (TSEpos <= 300 && TSEpos >= 0)
-                                    slidePos = 1;
-                                }
-
-                            if (recognition.getLabel().equals("Cube")) {
-                                int cubeRtX = (int) recognition.getRight();
-                                if (cubeRtX <= 730 && cubeRtX >= 600) {
-                                    slidePos = 3;
-                                } else if (cubeRtX <= 550 && cubeRtX >= 350) {
-                                    slidePos = 2;
-                                } else if (cubeRtX <= 300 && cubeRtX >= 0)
-                                    slidePos = 1;
-                            }
-
-                            telemetry.addData("slidePos is", slidePos);
-                            telemetry.update();
-
-                            i++;
-                        }
-
-                    }
-                }
+        //set slide heights using encoders for each position (1, 2, 3)
+        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setPower(0.35);
+        if (slidePos == 1) {
+            Slide.setTargetPosition(slideLevel1);
+            Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            telemetry.addData("Slide Level 1", Slide.getCurrentPosition());
+        }
+        else if (slidePos == 2) {
+            Slide.setTargetPosition(slideLevel2);
+            Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            telemetry.addData("Slide Level 2", Slide.getCurrentPosition());
+            while( Slide.isBusy()){
+                telemetry.addData("Encoder Value", Slide.getCurrentPosition());
             }
         }
+        else if (slidePos == 3) {
+            Slide.setTargetPosition(slideLevel3);
+            Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            telemetry.addData("Slide Level 3", Slide.getCurrentPosition());
+        }
+        telemetry.update();
+        sleep(3000);
     }
 
     /**
@@ -216,7 +249,7 @@ public class TensorFlowTest extends LinearOpMode {
         int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minResultConfidence = 0.6f;
+        tfodParameters.minResultConfidence = 0.7f;
         tfodParameters.isModelTensorFlow2 = true;
         tfodParameters.inputSize = 1080;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);

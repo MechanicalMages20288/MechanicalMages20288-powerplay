@@ -11,12 +11,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "RedMecanum", group = "TeleOp")
+@TeleOp(name = "BlueMecanum", group = "TeleOp")
 
-public class MecanumDriveKAR extends OpMode {
+public class TestMecanum extends OpMode {
 
     static final int MOTOR_TICK_COUNTS = 751;
-
 
 
     Servo bucket;
@@ -71,14 +70,10 @@ public class MecanumDriveKAR extends OpMode {
         left_drivePower = gamepad1.left_stick_y * -1.0;
         back_right_drivePower = gamepad1.left_stick_y * -1.0;
 
-        Intake.setPower(IntakePower);
-
         left_drive.setPower(left_drivePower);
         right_drive.setPower(right_drivePower);
         back_left_drive.setPower(left_drivePower);
         back_right_drive.setPower(right_drivePower);
-
-        IntakePower = gamepad2.right_trigger;
 
         boolean rightbumper = gamepad1.right_bumper; //Strafe Right
         boolean leftbumper = gamepad1.left_bumper; //Strafe Left
@@ -91,8 +86,14 @@ public class MecanumDriveKAR extends OpMode {
         boolean Rightcap = gamepad2.dpad_right;
         boolean Leftcap = gamepad2.dpad_left;
 
+        Intake.setPower(IntakePower);
+
+        IntakePower = gamepad2.right_trigger;
+
         /*if(gamepad1.b){
-            hasChanged = lastState != BToggleState;
+            hasChanged = lastState != B
+
+            ToggleState;
             isJustPressed = BToggleState && hasChanged;
 
         }
@@ -114,20 +115,17 @@ public class MecanumDriveKAR extends OpMode {
         }
         lastPressed = currPressed; */
 
-
-
-
         // Wall Hugger
         if (gamepad1.dpad_up) {
-            left_drive.setPower(1);
-            right_drive.setPower(.85);
-            back_left_drive.setPower(1);
-            back_right_drive.setPower(.85);
+            left_drive.setPower(.95);
+            right_drive.setPower(1);
+            back_left_drive.setPower(.95);
+            back_right_drive.setPower(1);
         } else if (gamepad1.dpad_down) {
-            left_drive.setPower(-1);
-            right_drive.setPower(-.95);
-            back_left_drive.setPower(-1);
-            back_right_drive.setPower(-.95);
+            left_drive.setPower(-.95);
+            right_drive.setPower(-1);
+            back_left_drive.setPower(-.95);
+            back_right_drive.setPower(-1);
         } else {
             left_drive.setPower(left_drivePower);
             right_drive.setPower(right_drivePower);
@@ -202,9 +200,6 @@ public class MecanumDriveKAR extends OpMode {
             telemetry.addData("Servo Vertical", Vcap.getPosition());
             telemetry.update();
             Vcap.setPosition(current_down_pos - 0.0005);
-
-
-
 
         }
         if (Leftcap) {
